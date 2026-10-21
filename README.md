@@ -2,7 +2,7 @@
 
 Standalone plugin for DeepSeek Harness 0.2.1-rc.2. Install from this GitHub repository using DSH Plugins, or `dsh plugin --profile web add <repository-url> --config.ignore-scripts=true`.
 
-The plugin bundles the unchanged [gawirable/office-mcp](https://github.com/gawirable/office-mcp) server at commit `cf210cb6581f33cf3ceb57cf1defff4fc58d050b`. It exposes 47 real MCP editing tools through the public DSH tools registry, adds an `office-excel` workflow through the public skill registry, and provides `office_present` for downloadable attachments. No Harness source modifications, old installation paths or external tool plugins are required.
+The plugin bundles the [gawirable/office-mcp](https://github.com/gawirable/office-mcp) server based on commit `cf210cb6581f33cf3ceb57cf1defff4fc58d050b`. It exposes 47 real MCP editing tools through the public DSH tools registry, adds an `office-excel` workflow through the public skill registry, and provides `office_present` for downloadable attachments. No Harness source modifications, old installation paths or external tool plugins are required.
 
 ## Setup
 
@@ -15,6 +15,8 @@ DSH plugin configuration supports `dataDir`, `pythonExecutable` (an already prov
 Ask DSH to create an Excel workbook. Tool discovery can find `office_tools`, the `office-excel` skill and the `office_excel_*` tools by their descriptions. The model creates and edits a workspace file, verifies it, then calls `office_present` so the user gets the editable XLSX attachment. Formula strings are preserved; formula caches are not proof of recalculation. Existing external files must first be copied into the conversation workspace. Paths and symlink targets are restricted to that workspace.
 
 Word and PowerPoint tools use the same workflow with `office_word_*` and `office_pptx_*`. MCP failures are surfaced rather than presented as successful edits. Connections close when the plugin unloads.
+
+The bundled chart adapter fixes upstream category-column and headerless-range handling; the patch is recorded in vendor/office-mcp/UPSTREAM.md.
 
 ## Validation
 

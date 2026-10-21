@@ -1162,31 +1162,26 @@ def excel_add_chart(
     ws = _require_sheet(wb, sheet)
 
     chart = cls()
-    # ``Reference`` uses 1-based (min_col, min_row); ``parse_range_ref``
-    # already returns 1-based coordinates, so we pass them through.
-    data_ref = Reference(
-        ws,
-        min_col=dc1,
-        min_row=dr1,
-        max_col=dc2,
-        max_row=dr2,
-    )
-    if chart_type.lower() == "pie":
-        # Pie charts typically take a single series (values only).
-        chart.add_data(data_ref, titles_from_data=True)
-    else:
-        chart.add_data(data_ref, titles_from_data=True)
-        # Use the first column as the category axis when there are
-        # at least 2 columns; otherwise leave the default.
-        if dc2 - dc1 >= 1:
-            cat_ref = Reference(
-                ws,
-                min_col=dc1,
-                min_row=dr1 + 1,
-                max_col=dc1,
-                max_row=dr2,
-            )
-            chart.set_categories(cat_ref)
+    # DSH fix: first column is category labels for multi-column ranges,
+    # not a numeric series. Headerless ranges must retain their first row.
+    first_value_col = dc1 + 1 if dc2 > dc1 else dc1
+    last_value_col = first_value_col if chart_type.lower() == "pie" else dc2
+    def is_heading(value):
+        if not isinstance(value, str) or value.startswith("="):
+            return False
+        try:
+            float(value)
+            return False
+        except ValueError:
+            return True
+    has_header = all(is_heading(ws.cell(dr1, col).value)
+                     for col in range(first_value_col, last_value_col + 1))
+    data_ref = Reference(ws, min_col=first_value_col, min_row=dr1,
+                         max_col=last_value_col, max_row=dr2)
+    chart.add_data(data_ref, titles_from_data=has_header)
+    if dc2 > dc1:
+        chart.set_categories(Reference(ws, min_col=dc1,
+                             min_row=dr1 + int(has_header), max_row=dr2))
     if title is not None:
         chart.title = title
 
