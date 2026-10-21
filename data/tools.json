@@ -1,0 +1,2589 @@
+[
+  {
+    "name": "excel_create_workbook",
+    "description": "Create a new ``.xlsx`` file at ``path``.\n\n    Args:\n        path: Target ``.xlsx`` path. May be absolute or relative to\n            ``folder`` (or to the default folder when ``folder`` is\n            ``None``).\n        sheet_name: Optional name for the initial sheet. When\n            ``None`` (the default), the openpyxl default ``\"Sheet1\"``\n            is used.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"path\": \"<absolute path>\"}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` if ``path`` is empty\n            or a file already exists at the target (or the requested\n            sheet name is malformed). ``ERR_UNSUPPORTED_FMT`` if\n            ``path`` does not end in ``.xlsx``.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sheet_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sheet Name"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "excel_create_workbookArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "excel_create_workbookDictOutput"
+    }
+  },
+  {
+    "name": "excel_get_info",
+    "description": "Return a summary of the workbook's sheets and sizes.\n\n    The returned dict contains:\n\n    * ``path`` — absolute path of the file on disk.\n    * ``sheets`` — list of one dict per sheet, in insertion order.\n      Each entry has ``name`` (str), ``index`` (int, 0-based),\n      ``rows`` (int, openpyxl's ``max_row``), and ``cols`` (int,\n      openpyxl's ``max_column``).\n\n    Args:\n        path: Path to an existing ``.xlsx``.\n        folder: Optional base folder for relative paths.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_UNSUPPORTED_FMT`` for non-``.xlsx``\n            extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "excel_get_infoArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "title": "excel_get_infoDictOutput"
+    }
+  },
+  {
+    "name": "excel_list_sheets",
+    "description": "Return one dict per sheet in the workbook (insertion order).\n\n    Each entry is identical to those in :func:`excel_get_info`['``sheets``'].\n\n    Args:\n        path: Path to an existing ``.xlsx``.\n        folder: Optional base folder for relative paths.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_UNSUPPORTED_FMT`` for non-``.xlsx``\n            extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "excel_list_sheetsArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Result",
+          "type": "array"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "excel_list_sheetsOutput"
+    }
+  },
+  {
+    "name": "excel_read_sheet",
+    "description": "Read cell values from a sheet, optionally limited to a range.\n\n    Args:\n        path: Path to an existing ``.xlsx``.\n        sheet: Name of the sheet to read.\n        range: Optional cell or range reference. Accepts:\n\n            * ``None`` — read the entire used range\n              (``ws.max_row`` × ``ws.max_column``).\n            * ``\"A1\"`` — read a single cell; the result is a 1x1 list\n              ``[[value]]``.\n            * ``\"A1:C3\"`` — read a rectangular range. Reversed ranges\n              (``\"C3:A1\"``) are rejected.\n\n            Column letters may be lower-case or upper-case.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        A 2D list of values. Empty cells (``None``) are normalised\n        to the empty string ``\"\"`` so the result is JSON-friendly.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_SHEET_NOT_FOUND`` if ``sheet`` is not in\n            the workbook, ``ERR_CELL_PARSE`` for malformed\n            ``range``, ``ERR_UNSUPPORTED_FMT`` for non-``.xlsx``\n            extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sheet": {
+          "title": "Sheet",
+          "type": "string"
+        },
+        "range": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Range"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "sheet"
+      ],
+      "title": "excel_read_sheetArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "items": {
+            "items": {},
+            "type": "array"
+          },
+          "title": "Result",
+          "type": "array"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "excel_read_sheetOutput"
+    }
+  },
+  {
+    "name": "excel_write_cell",
+    "description": "Write a single value to one cell.\n\n    Strings starting with ``=`` are persisted as formulas\n    (``VAL-EXCEL-022``). Other types (``int``, ``float``, ``bool``,\n    ``None``) are written verbatim via :meth:`openpyxl.cell.Cell.value`.\n\n    Args:\n        path: Path to an existing ``.xlsx``.\n        sheet: Name of the sheet.\n        cell: A single cell reference like ``\"A1\"``.\n        value: Value to write.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"ok\": True}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_SHEET_NOT_FOUND`` for an unknown sheet,\n            ``ERR_CELL_PARSE`` for a malformed ``cell``,\n            ``ERR_UNSUPPORTED_FMT`` for non-``.xlsx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sheet": {
+          "title": "Sheet",
+          "type": "string"
+        },
+        "cell": {
+          "title": "Cell",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "sheet",
+        "cell",
+        "value"
+      ],
+      "title": "excel_write_cellArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "excel_write_cellDictOutput"
+    }
+  },
+  {
+    "name": "excel_write_range",
+    "description": "Write a 2D list of values starting at ``start_cell``.\n\n    The data is interpreted in row-major order: ``data[0][0]`` goes\n    to ``start_cell``, ``data[0][1]`` to the cell one column to the\n    right, ``data[1][0]`` to the cell one row below, and so on.\n    Writing extends the sheet's used range as needed\n    (``VAL-EXCEL-027``).\n\n    Args:\n        path: Path to an existing ``.xlsx``.\n        sheet: Name of the sheet.\n        start_cell: Top-left cell of the write region (e.g. ``\"A1\"``).\n        data: 2D list of values. The empty list ``[]`` is accepted\n            and is a no-op (the file is still saved; the workbook\n            remains valid).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"ok\": True}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_SHEET_NOT_FOUND`` for an unknown sheet,\n            ``ERR_CELL_PARSE`` for a malformed ``start_cell``,\n            ``ERR_INVALID_PARAMS`` if ``data`` is not a list,\n            ``ERR_UNSUPPORTED_FMT`` for non-``.xlsx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sheet": {
+          "title": "Sheet",
+          "type": "string"
+        },
+        "start_cell": {
+          "title": "Start Cell",
+          "type": "string"
+        },
+        "data": {
+          "items": {
+            "items": {},
+            "type": "array"
+          },
+          "title": "Data",
+          "type": "array"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "sheet",
+        "start_cell",
+        "data"
+      ],
+      "title": "excel_write_rangeArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "excel_write_rangeDictOutput"
+    }
+  },
+  {
+    "name": "excel_create_sheet",
+    "description": "Append a new sheet to the workbook.\n\n    Args:\n        path: Path to an existing ``.xlsx``.\n        name: Name of the new sheet. Must be non-empty and free of\n            Excel-forbidden characters (``: / \\ ? * [ ]``).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"index\": <n>}`` where ``<n>`` is the position of the new\n        sheet in ``wb.sheetnames`` (0-based).\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_INVALID_PARAMS`` for a duplicate or\n            malformed ``name``, ``ERR_UNSUPPORTED_FMT`` for\n            non-``.xlsx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "name"
+      ],
+      "title": "excel_create_sheetArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "excel_create_sheetDictOutput"
+    }
+  },
+  {
+    "name": "excel_delete_sheet",
+    "description": "Remove a sheet from the workbook.\n\n    Refuses to delete the last remaining sheet\n    (``VAL-EXCEL-036`` / ``VAL-EXCEL-037``): the workbook must\n    always have at least one sheet.\n\n    Args:\n        path: Path to an existing ``.xlsx``.\n        name: Name of the sheet to delete.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"ok\": True}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_SHEET_NOT_FOUND`` for an unknown sheet,\n            ``ERR_INVALID_PARAMS`` when the target is the only\n            remaining sheet, ``ERR_UNSUPPORTED_FMT`` for non-``.xlsx``\n            extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "name"
+      ],
+      "title": "excel_delete_sheetArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "excel_delete_sheetDictOutput"
+    }
+  },
+  {
+    "name": "excel_rename_sheet",
+    "description": "Rename a sheet in the workbook.\n\n    Cell contents are preserved across the rename\n    (``VAL-EXCEL-042``). Renaming a sheet to its own name is a\n    no-op (the file is still saved, but the sheet names are\n    unchanged — ``VAL-EXCEL-041``).\n\n    Args:\n        path: Path to an existing ``.xlsx``.\n        old_name: Current name of the sheet to rename.\n        new_name: Desired new name. Must be non-empty and free of\n            Excel-forbidden characters.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"ok\": True}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_SHEET_NOT_FOUND`` for an unknown\n            ``old_name``, ``ERR_INVALID_PARAMS`` when ``new_name``\n            is empty, contains forbidden characters, or already\n            exists as another sheet, ``ERR_UNSUPPORTED_FMT`` for\n            non-``.xlsx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "old_name": {
+          "title": "Old Name",
+          "type": "string"
+        },
+        "new_name": {
+          "title": "New Name",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "old_name",
+        "new_name"
+      ],
+      "title": "excel_rename_sheetArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "excel_rename_sheetDictOutput"
+    }
+  },
+  {
+    "name": "excel_format_cells",
+    "description": "Apply font, fill, border, alignment, and number-format to a range.\n\n    Each formatting argument is ``None`` by default and is treated as\n    \"do not change\". When **every** formatting argument is ``None``,\n    the call is a true no-op: the file is **not** re-saved, so its\n    SHA256 and ``mtime`` are preserved (``VAL-EXCEL-049``).\n\n    Args:\n        path: Path to an existing ``.xlsx``.\n        sheet: Name of the sheet to format.\n        cell_range: A cell reference (``\"A1\"``) or a range\n            (``\"A1:C3\"``). Column letters may be upper or lower case.\n        bold: ``True`` / ``False`` to set ``font.bold``, or ``None``\n            to leave it alone.\n        italic: Same semantics as ``bold`` for ``font.italic``.\n        font_name: A font family name (e.g. ``\"Arial\"``).\n        font_size: Point size (e.g. ``14``).\n        font_color: Hex RGB string (``\"FF0000\"``).\n        fill_color: Hex RGB string for the cell background.\n        border: Either a single style name applied to all four sides\n            (``\"thin\"``, ``\"medium\"``, ``\"thick\"``, ``\"dashed\"``,\n            ``\"dotted\"``, ``\"double\"``, ``\"hair\"``) or a dict mapping\n            ``\"left\"`` / ``\"right\"`` / ``\"top\"`` / ``\"bottom\"`` to\n            a style name.\n        alignment: ``\"left\"`` / ``\"center\"`` / ``\"right\"`` /\n            ``\"justify\"`` / ``\"general\"`` for ``Alignment.horizontal``.\n        number_format: An Excel number format code (e.g. ``\"0.00%\"``,\n            ``\"#,##0.00\"``, ``\"yyyy-mm-dd\"``).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"ok\": True}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_SHEET_NOT_FOUND`` for an unknown sheet,\n            ``ERR_CELL_PARSE`` for a malformed range,\n            ``ERR_INVALID_PARAMS`` for an unknown border style or\n            alignment, ``ERR_UNSUPPORTED_FMT`` for non-``.xlsx``\n            extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sheet": {
+          "title": "Sheet",
+          "type": "string"
+        },
+        "cell_range": {
+          "title": "Cell Range",
+          "type": "string"
+        },
+        "bold": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bold"
+        },
+        "italic": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Italic"
+        },
+        "font_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Font Name"
+        },
+        "font_size": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Font Size"
+        },
+        "font_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Font Color"
+        },
+        "fill_color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fill Color"
+        },
+        "border": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Border"
+        },
+        "alignment": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alignment"
+        },
+        "number_format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Number Format"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "sheet",
+        "cell_range"
+      ],
+      "title": "excel_format_cellsArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "excel_format_cellsDictOutput"
+    }
+  },
+  {
+    "name": "excel_add_chart",
+    "description": "Add a chart to a sheet, anchored at ``target_cell``.\n\n    Supported ``chart_type`` values: ``\"bar\"``, ``\"line\"``,\n    ``\"pie\"``, ``\"area\"``, ``\"scatter\"``. Any other value raises\n    :class:`OfficeMCPError` with ``ERR_INVALID_PARAMS``\n    (``VAL-EXCEL-056``) and the workbook is not modified.\n\n    The chart's data is read from ``data_range`` (e.g. ``\"A1:B5\"``);\n    the first column is treated as categories and subsequent columns\n    as series. The chart is anchored at ``target_cell`` (e.g.\n    ``\"D2\"``) so its top-left corner coincides with that cell\n    (``VAL-EXCEL-052``).\n\n    Args:\n        path: Path to an existing ``.xlsx``.\n        sheet: Name of the sheet that will own the chart.\n        chart_type: One of ``\"bar\"``, ``\"line\"``, ``\"pie\"``,\n            ``\"area\"``, ``\"scatter\"``.\n        data_range: A range reference like ``\"A1:B5\"``.\n        target_cell: A single cell reference like ``\"D2\"``. The\n            chart's top-left anchor is set to this cell.\n        title: Optional chart title. When supplied, it is set via\n            openpyxl's title API and survives a reload.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"ok\": True}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_SHEET_NOT_FOUND`` for an unknown sheet,\n            ``ERR_INVALID_PARAMS`` for an unknown ``chart_type`` or\n            malformed ``data_range`` / ``target_cell``,\n            ``ERR_CELL_PARSE`` for a malformed range,\n            ``ERR_UNSUPPORTED_FMT`` for non-``.xlsx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sheet": {
+          "title": "Sheet",
+          "type": "string"
+        },
+        "chart_type": {
+          "title": "Chart Type",
+          "type": "string"
+        },
+        "data_range": {
+          "title": "Data Range",
+          "type": "string"
+        },
+        "target_cell": {
+          "title": "Target Cell",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "sheet",
+        "chart_type",
+        "data_range",
+        "target_cell"
+      ],
+      "title": "excel_add_chartArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "excel_add_chartDictOutput"
+    }
+  },
+  {
+    "name": "excel_export_csv",
+    "description": "Export a sheet to CSV via :mod:`openpyxl` and the stdlib :mod:`csv`.\n\n    Delegates to :func:`office_mcp.exporters.export_to_csv`. The\n    output is written as UTF-8 (without a BOM) and uses the\n    standard Excel-friendly CSV dialect.\n\n    Args:\n        path: Path to an existing ``.xlsx`` file.\n        output: Target path for the produced ``.csv``. The parent\n            directory is created if it does not exist. If a relative\n            path is given, it is resolved against ``folder`` (or the\n            default folder).\n        sheet: Optional sheet name. When ``None`` (the default), the\n            workbook's first sheet is exported.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"output_path\": \"<absolute path of the produced CSV>\"}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the source is\n            missing, ``ERR_UNSUPPORTED_FMT`` for non-``.xlsx``\n            sources, ``ERR_SHEET_NOT_FOUND`` for an unknown sheet.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "sheet": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sheet"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "output"
+      ],
+      "title": "excel_export_csvArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "excel_export_csvDictOutput"
+    }
+  },
+  {
+    "name": "excel_export_pdf",
+    "description": "Convert a ``.xlsx`` file to PDF via LibreOffice headless.\n\n    Delegates to :func:`office_mcp.exporters.export_to_pdf`. A\n    unique ``-env:UserInstallation`` is used per call so multiple\n    exports can run concurrently.\n\n    Args:\n        path: Path to an existing ``.xlsx`` file.\n        output: Target path for the produced PDF. The parent\n            directory is created if it does not exist. If a relative\n            path is given, it is resolved against ``folder`` (or the\n            default folder).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"output_path\": \"<absolute path of the produced PDF>\"}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the source is\n            missing, ``ERR_UNSUPPORTED_FMT`` for non-``.xlsx``\n            sources, ``ERR_LIBREOFFICE_MISSING`` when ``soffice`` is\n            not on PATH, ``ERR_EXPORT_FAILED`` for any other failure.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "output"
+      ],
+      "title": "excel_export_pdfArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "excel_export_pdfDictOutput"
+    }
+  },
+  {
+    "name": "excel_export_html",
+    "description": "Convert a ``.xlsx`` file to HTML via LibreOffice headless.\n\n    Delegates to :func:`office_mcp.exporters.export_to_html`. Unlike\n    the Word variant this path always goes through LibreOffice\n    (openpyxl does not produce standalone HTML).\n\n    Args:\n        path: Path to an existing ``.xlsx`` file.\n        output: Target path for the produced HTML. The parent\n            directory is created if it does not exist. If a relative\n            path is given, it is resolved against ``folder`` (or the\n            default folder).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"output_path\": \"<absolute path of the produced HTML>\"}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the source is\n            missing, ``ERR_UNSUPPORTED_FMT`` for non-``.xlsx``\n            sources, ``ERR_LIBREOFFICE_MISSING`` when ``soffice`` is\n            not on PATH, ``ERR_EXPORT_FAILED`` for any other failure.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "output"
+      ],
+      "title": "excel_export_htmlArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "excel_export_htmlDictOutput"
+    }
+  },
+  {
+    "name": "list_documents",
+    "description": "List all Office files in a folder (non-recursive).\n\n    Scans the immediate children of ``folder`` and returns one entry\n    per file with extension ``.docx``/``.xlsx``/``.pptx``. Non-Office\n    files (and subdirectories) are filtered out. The scan does **not**\n    descend into subdirectories.\n\n    Args:\n        folder: Folder to scan. When ``None`` (default), the default\n            folder from :func:`office_mcp.config.get_default_folder`\n            is used. Relative paths are joined with the default folder.\n\n    Returns:\n        A list of dicts, each with:\n\n        * ``path`` — absolute, canonical path to the file.\n        * ``name`` — file basename (e.g. ``\"report.docx\"``).\n        * ``type`` — one of ``\"word\"``, ``\"excel\"``, ``\"pptx\"``.\n        * ``size_bytes`` — file size on disk (positive int).\n        * ``modified`` — ISO-8601 timestamp of last modification\n          (``datetime.fromisoformat``-parseable, with timezone).\n\n        An empty folder returns ``[]`` (``VAL-GEN-002``).\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` if ``folder`` exists\n            but is not a directory.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "title": "list_documentsArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Result",
+          "type": "array"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "list_documentsOutput"
+    }
+  },
+  {
+    "name": "get_document_info",
+    "description": "Return metadata for a single Office file.\n\n    Detects the format by extension and dispatches to the\n    format-specific ``*_get_info`` tool. The returned dict is a\n    superset of the underlying tool's dict, augmented with ``type``\n    (``\"word\"`` / ``\"excel\"`` / ``\"pptx\"``) and ``size_bytes``.\n\n    Args:\n        path: Path to an existing Office file (``abs`` or relative to\n            ``folder``/default folder).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        A dict with:\n\n        * ``type`` — one of ``\"word\"``, ``\"excel\"``, ``\"pptx\"``.\n        * ``size_bytes`` — file size in bytes.\n        * Format-specific fields: for ``.docx`` →\n          ``paragraphs``, ``sections``, ``tables``, ``images``,\n          ``properties``; for ``.xlsx`` → ``sheets`` (list),\n          ``sheet_count``, ``sheet_names``; for ``.pptx`` →\n          ``slide_count``, ``layouts``, ``dimensions_inches`` (with\n          ``width_inches`` / ``height_inches``).\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is missing\n            (``VAL-GEN-010``), ``ERR_UNSUPPORTED_FMT`` if the\n            extension is not one of ``.docx`` / ``.xlsx`` / ``.pptx``.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "get_document_infoArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "title": "get_document_infoDictOutput"
+    }
+  },
+  {
+    "name": "search_text",
+    "description": "Search for a substring across the body of an Office file.\n\n    The location format depends on the source file's extension:\n\n    * ``.docx`` → ``\"paragraph:N\"`` (0-based body paragraph index)\n    * ``.xlsx`` → ``\"cell:<coord>\"`` (e.g. ``\"cell:B3\"``)\n    * ``.pptx`` → ``\"slide:N:shape:M\"`` (0-based slide + 0-based shape\n      index in ``slide.shapes``)\n\n    Each match entry has a ``location`` and a ``context`` field. The\n    ``context`` is a window of up to ~30 characters on each side of\n    the match in the original text (case preserved).\n\n    Args:\n        path: Path to the file to search.\n        query: Substring to look for. Must be a non-empty string.\n        case_sensitive: When ``True`` (default), the match is exact;\n            when ``False``, matches are case-insensitive.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        A list of match dicts. Empty when there are no matches\n        (``VAL-GEN-016``).\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` if ``query`` is not a\n            string or is empty, ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_UNSUPPORTED_FMT`` for non-Office files.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "query": {
+          "title": "Query",
+          "type": "string"
+        },
+        "case_sensitive": {
+          "default": true,
+          "title": "Case Sensitive",
+          "type": "boolean"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "query"
+      ],
+      "title": "search_textArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Result",
+          "type": "array"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "search_textOutput"
+    }
+  },
+  {
+    "name": "convert_document",
+    "description": "Convert a ``.docx``/``.xlsx``/``.pptx`` file to ``pdf``/``html``/``csv``.\n\n    Dispatches to the format-specific exporter based on the source\n    file's extension and the requested ``target_format``. When\n    ``output`` is omitted, the output is written next to the source\n    with the new extension (``VAL-GEN-024``).\n\n    Args:\n        path: Path to an existing Office file.\n        target_format: One of ``\"pdf\"``, ``\"html\"``, ``\"csv\"``. The\n            match is case-insensitive and a leading dot is tolerated.\n        output: Optional target path for the converted file. When\n            ``None`` (default), a sibling of the input is used.\n            Relative paths are resolved against ``folder`` (or the\n            default folder).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"output_path\": \"<absolute path>\", \"format\": <target>}``\n        where ``format`` is the lower-cased, dot-stripped target\n        format (e.g. ``\"pdf\"``).\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for unknown\n            ``target_format``, ``ERR_FILE_NOT_FOUND`` if the source\n            is missing, ``ERR_UNSUPPORTED_FMT`` for an unsupported\n            (source, target) combination (e.g. ``.docx`` → ``.csv``,\n            or any non-Office source), or any error propagated from\n            :mod:`office_mcp.exporters` (``ERR_LIBREOFFICE_MISSING``,\n            ``ERR_EXPORT_FAILED``).\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "target_format": {
+          "title": "Target Format",
+          "type": "string"
+        },
+        "output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "target_format"
+      ],
+      "title": "convert_documentArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "convert_documentDictOutput"
+    }
+  },
+  {
+    "name": "pptx_create_presentation",
+    "description": "Create a new ``.pptx`` file at ``path``, optionally with a title slide.\n\n    Args:\n        path: Target ``.pptx`` path. May be absolute or relative to\n            ``folder`` (or to the default folder when ``folder`` is\n            ``None``).\n        title: Optional text for the first slide's title placeholder.\n            When ``None`` (the default), the file is created with no\n            slides at all (``VAL-PPTX-002``). When a non-empty\n            ``title`` is given, a single slide is appended using the\n            ``\"Title Slide\"`` layout (index 0) and the title is\n            written into its title placeholder (``VAL-PPTX-001``).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"path\": \"<absolute path>\"}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` if ``path`` is empty\n            or a file already exists at the target,\n            ``ERR_UNSUPPORTED_FMT`` if ``path`` does not end in\n            ``.pptx``.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "pptx_create_presentationArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "pptx_create_presentationDictOutput"
+    }
+  },
+  {
+    "name": "pptx_get_info",
+    "description": "Return a summary of the presentation's structure and dimensions.\n\n    The returned dict contains:\n\n    * ``path`` — absolute path of the file on disk.\n    * ``slide_count`` — number of slides (0 is valid;\n      ``VAL-PPTX-009``).\n    * ``layouts`` — list of layout names available in the deck's\n      slide master (always non-empty; ``VAL-PPTX-006`` / ``-009``).\n    * ``dimensions`` — ``{\"width_inches\": <float>, \"height_inches\":\n      <float>}``. The default widescreen template is 13.333 × 7.5\n      inches; the default ``Presentation()`` template is 10.0 × 7.5\n      inches.\n\n    Args:\n        path: Path to an existing ``.pptx``.\n        folder: Optional base folder for relative paths.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_UNSUPPORTED_FMT`` for non-``.pptx``\n            extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "pptx_get_infoArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "title": "pptx_get_infoDictOutput"
+    }
+  },
+  {
+    "name": "pptx_list_slides",
+    "description": "Return one dict per slide in insertion order.\n\n    Each entry has the following keys (``VAL-PPTX-010``):\n\n    * ``index`` — 0-based slide index.\n    * ``layout`` — name of the slide's layout (e.g. ``\"Title Slide\"``,\n      ``\"Title and Content\"``).\n    * ``title`` — text of the slide's title placeholder, or ``\"\"``\n      when the layout has no title placeholder.\n    * ``shape_count`` — number of shapes on the slide (placeholders\n      + pictures + text boxes + ...).\n\n    An empty deck returns ``[]`` (``VAL-PPTX-011``).\n\n    Args:\n        path: Path to an existing ``.pptx``.\n        folder: Optional base folder for relative paths.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_UNSUPPORTED_FMT`` for non-``.pptx``\n            extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "pptx_list_slidesArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Result",
+          "type": "array"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "pptx_list_slidesOutput"
+    }
+  },
+  {
+    "name": "pptx_read_slide",
+    "description": "Return the slide's title, layout, and shape list.\n\n    Args:\n        path: Path to an existing ``.pptx``.\n        index: 0-based slide index.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"index\": <int>, \"layout\": <str>, \"title\": <str>,\n        \"shapes\": [<shape_dict>, ...]}``.\n\n        Each ``shape_dict`` has ``type`` (shape class name),\n        ``shape_type`` (the numeric ``MSO_SHAPE_TYPE`` or ``None``),\n        ``name`` (auto-generated name), and ``text`` (text-frame\n        text, or ``\"\"`` for shape types without text).\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for a non-int or\n            out-of-range ``index``, ``ERR_FILE_NOT_FOUND`` if the\n            file is missing, ``ERR_UNSUPPORTED_FMT`` for non-``.pptx``\n            extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "index": {
+          "title": "Index",
+          "type": "integer"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "index"
+      ],
+      "title": "pptx_read_slideArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "title": "pptx_read_slideDictOutput"
+    }
+  },
+  {
+    "name": "pptx_add_slide",
+    "description": "Append a new slide to the deck.\n\n    The slide is always appended to the end\n    (``VAL-PPTX-018`` — the returned ``index`` equals the previous\n    slide count). When ``title`` is given, the slide's title\n    placeholder is populated (``VAL-PPTX-021``).\n\n    Args:\n        path: Path to an existing ``.pptx``.\n        layout_index: 0-based index into ``prs.slide_layouts``. The\n            default ``1`` is the ``\"Title and Content\"`` layout in\n            python-pptx's default template.\n        title: Optional title text. When ``None`` the title\n            placeholder is left empty.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"index\": <int>}`` — the 0-based index of the new slide.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for a non-int or\n            out-of-range ``layout_index`` (the deck is **not**\n            modified in this case — ``VAL-PPTX-020``),\n            ``ERR_FILE_NOT_FOUND`` if the file is missing,\n            ``ERR_UNSUPPORTED_FMT`` for non-``.pptx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "layout_index": {
+          "default": 1,
+          "title": "Layout Index",
+          "type": "integer"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "pptx_add_slideArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "pptx_add_slideDictOutput"
+    }
+  },
+  {
+    "name": "pptx_delete_slide",
+    "description": "Remove a slide from the deck.\n\n    Refuses to delete the last remaining slide (``VAL-PPTX-024``):\n    the deck must always have at least one slide. After deletion\n    the remaining slides keep their relative order, but indices\n    past ``index`` shift down by one (``VAL-PPTX-023`` / ``-026``).\n\n    Args:\n        path: Path to an existing ``.pptx``.\n        index: 0-based slide index.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"ok\": True}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for a non-int or\n            out-of-range ``index``, or when the deck has only one\n            slide; ``ERR_FILE_NOT_FOUND`` if the file is missing;\n            ``ERR_UNSUPPORTED_FMT`` for non-``.pptx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "index": {
+          "title": "Index",
+          "type": "integer"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "index"
+      ],
+      "title": "pptx_delete_slideArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "pptx_delete_slideDictOutput"
+    }
+  },
+  {
+    "name": "pptx_reorder_slides",
+    "description": "Move a slide from one position to another.\n\n    This is a true *move*: the slide at ``from_index`` is removed\n    first, then inserted at ``to_index`` in the resulting sequence\n    (``VAL-PPTX-027``). So moving slide 0 to position 2 in a 3-slide\n    deck ``[A, B, C]`` yields ``[B, C, A]``, not the swap result\n    ``[C, B, A]``.\n\n    Reordering a slide to its own index (``from_index == to_index``)\n    is a no-op that still returns ``{\"ok\": True}``\n    (``VAL-PPTX-028``).\n\n    Args:\n        path: Path to an existing ``.pptx``.\n        from_index: 0-based index of the slide to move.\n        to_index: 0-based destination index. Must satisfy\n            ``0 <= to_index < slide_count`` (after the slide is\n            removed from ``from_index``).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"ok\": True}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for a non-int or\n            out-of-range ``from_index`` / ``to_index``, in which\n            case the deck is left unchanged (``VAL-PPTX-029``);\n            ``ERR_FILE_NOT_FOUND`` if the file is missing;\n            ``ERR_UNSUPPORTED_FMT`` for non-``.pptx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "from_index": {
+          "title": "From Index",
+          "type": "integer"
+        },
+        "to_index": {
+          "title": "To Index",
+          "type": "integer"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "from_index",
+        "to_index"
+      ],
+      "title": "pptx_reorder_slidesArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "pptx_reorder_slidesDictOutput"
+    }
+  },
+  {
+    "name": "pptx_add_text_box",
+    "description": "Add a text box with optional font properties to a slide.\n\n    The text box is appended to the slide's shape list and its\n    0-based index within that slide is returned (``VAL-PPTX-031``).\n    When ``font_size`` / ``bold`` / ``italic`` / ``font_name`` /\n    ``color`` are given, they are applied to the text box's first\n    run (``VAL-PPTX-032``); when any of them is ``None`` the\n    corresponding attribute is left at the layout / default value.\n\n    Args:\n        path: Path to an existing ``.pptx``.\n        text: Text to put inside the text box.\n        x: Left edge in inches (e.g. ``1.0``).\n        y: Top edge in inches (e.g. ``2.0``).\n        w: Width in inches (e.g. ``3.0``).\n        h: Height in inches (e.g. ``0.5``).\n        slide: 0-based slide index (``VAL-PPTX-034``).\n        folder: Optional base folder for relative paths.\n        font_size: Optional font size in points (``VAL-PPTX-032``).\n        bold: Optional bold flag (``VAL-PPTX-032``).\n        italic: Optional italic flag.\n        font_name: Optional font name (e.g. ``\"Arial\"``).\n        color: Optional hex color string (``\"FF0000\"``).\n\n    Returns:\n        ``{\"shape_index\": <int>}`` — 0-based index of the new\n        text box within the slide's shape list.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for non-numeric or\n            out-of-range geometry, out-of-range ``slide``, or invalid\n            ``color``; ``ERR_FILE_NOT_FOUND`` if the file is missing;\n            ``ERR_UNSUPPORTED_FMT`` for non-``.pptx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        },
+        "w": {
+          "title": "W",
+          "type": "number"
+        },
+        "h": {
+          "title": "H",
+          "type": "number"
+        },
+        "slide": {
+          "default": 0,
+          "title": "Slide",
+          "type": "integer"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        },
+        "font_size": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Font Size"
+        },
+        "bold": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bold"
+        },
+        "italic": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Italic"
+        },
+        "font_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Font Name"
+        },
+        "color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Color"
+        }
+      },
+      "required": [
+        "path",
+        "text",
+        "x",
+        "y",
+        "w",
+        "h"
+      ],
+      "title": "pptx_add_text_boxArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "pptx_add_text_boxDictOutput"
+    }
+  },
+  {
+    "name": "pptx_add_image",
+    "description": "Add an image to a slide at the given inch coordinates.\n\n    The ``w`` / ``h`` arguments control the rendered size:\n\n    * Both given — the picture is stretched to exactly those\n      dimensions (``VAL-PPTX-036``).\n    * Only ``w`` given — ``h`` is computed from the image's\n      intrinsic aspect ratio (``VAL-PPTX-038``). Aspect ratio\n      preserved within 1% tolerance.\n    * Only ``h`` given — ``w`` is computed from the image's\n      intrinsic aspect ratio (``VAL-PPTX-039``).\n    * Neither given — the picture is rendered at its natural pixel\n      size at 96 DPI (``VAL-PPTX-037``).\n\n    Args:\n        path: Path to an existing ``.pptx``.\n        image_path: Path to the image to embed (any format python-pptx\n            can read: PNG, JPEG, GIF, BMP, TIFF).\n        x: Left edge in inches.\n        y: Top edge in inches.\n        w: Optional width in inches. ``None`` = compute from aspect\n            ratio (when ``h`` is given) or use natural size.\n        h: Optional height in inches. ``None`` = compute from aspect\n            ratio (when ``w`` is given) or use natural size.\n        slide: 0-based slide index.\n        folder: Optional base folder for relative paths. Used for\n            both the deck and the image path.\n\n    Returns:\n        ``{\"shape_index\": <int>}`` — 0-based index of the new picture\n        within the slide's shape list.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if either the deck\n            or the image file is missing (``VAL-PPTX-040``);\n            ``ERR_INVALID_PARAMS`` for out-of-range ``slide``\n            (``VAL-PPTX-041``) or non-numeric geometry; ``ERR_UNSUPPORTED_FMT``\n            for non-``.pptx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "image_path": {
+          "title": "Image Path",
+          "type": "string"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        },
+        "w": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "W"
+        },
+        "h": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "H"
+        },
+        "slide": {
+          "default": 0,
+          "title": "Slide",
+          "type": "integer"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "image_path",
+        "x",
+        "y"
+      ],
+      "title": "pptx_add_imageArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "pptx_add_imageDictOutput"
+    }
+  },
+  {
+    "name": "pptx_add_shape",
+    "description": "Add a shape (rectangle, oval, etc.) to a slide.\n\n    ``shape_type`` is one of the case-insensitive names mapped by\n    :data:`_SHAPE_TYPE_MAP` — the supported set covers the most\n    common ``MSO_SHAPE`` members (``VAL-PPTX-042`` for rectangle,\n    ``VAL-PPTX-043`` for oval and rounded rectangle). An unknown\n    type returns ``ERR_INVALID_PARAMS`` and the deck is left\n    unchanged (``VAL-PPTX-044``).\n\n    Args:\n        path: Path to an existing ``.pptx``.\n        shape_type: Shape type (e.g. ``\"rectangle\"``, ``\"oval\"``,\n            ``\"rounded_rectangle\"``). See :data:`_SHAPE_TYPE_MAP`.\n        x: Left edge in inches.\n        y: Top edge in inches.\n        w: Width in inches.\n        h: Height in inches.\n        slide: 0-based slide index (``VAL-PPTX-045``).\n        folder: Optional base folder for relative paths.\n        text: Optional text to put inside the shape's text frame.\n\n    Returns:\n        ``{\"shape_index\": <int>}`` — 0-based index of the new shape\n        within the slide's shape list.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for an unknown shape\n            type, out-of-range slide, or non-numeric geometry;\n            ``ERR_FILE_NOT_FOUND`` if the file is missing;\n            ``ERR_UNSUPPORTED_FMT`` for non-``.pptx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "shape_type": {
+          "title": "Shape Type",
+          "type": "string"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        },
+        "w": {
+          "title": "W",
+          "type": "number"
+        },
+        "h": {
+          "title": "H",
+          "type": "number"
+        },
+        "slide": {
+          "default": 0,
+          "title": "Slide",
+          "type": "integer"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Text"
+        }
+      },
+      "required": [
+        "path",
+        "shape_type",
+        "x",
+        "y",
+        "w",
+        "h"
+      ],
+      "title": "pptx_add_shapeArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "pptx_add_shapeDictOutput"
+    }
+  },
+  {
+    "name": "pptx_add_table",
+    "description": "Add a table to a slide.\n\n    When ``data`` is ``None`` the table is created with every cell\n    empty (``VAL-PPTX-047``). When ``data`` is shorter than\n    ``rows x cols`` the missing cells are padded with empty strings\n    (``VAL-PPTX-048``). All cell values are coerced to ``str`` before\n    being written.\n\n    Args:\n        path: Path to an existing ``.pptx``.\n        rows: Number of rows (must be ``> 0``; ``VAL-PPTX-050``).\n        cols: Number of columns (must be ``> 0``).\n        x: Left edge in inches.\n        y: Top edge in inches.\n        w: Width in inches.\n        h: Height in inches.\n        slide: 0-based slide index (``VAL-PPTX-049``).\n        folder: Optional base folder for relative paths.\n        data: Optional 2D list of cell values, row-major.\n\n    Returns:\n        ``{\"shape_index\": <int>}`` — 0-based index of the new table\n        within the slide's shape list.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for non-positive\n            ``rows`` / ``cols`` (``VAL-PPTX-050``), out-of-range\n            ``slide`` (``VAL-PPTX-049``), or non-numeric geometry;\n            ``ERR_FILE_NOT_FOUND`` if the file is missing;\n            ``ERR_UNSUPPORTED_FMT`` for non-``.pptx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "rows": {
+          "title": "Rows",
+          "type": "integer"
+        },
+        "cols": {
+          "title": "Cols",
+          "type": "integer"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        },
+        "w": {
+          "title": "W",
+          "type": "number"
+        },
+        "h": {
+          "title": "H",
+          "type": "number"
+        },
+        "slide": {
+          "default": 0,
+          "title": "Slide",
+          "type": "integer"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        },
+        "data": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {},
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data"
+        }
+      },
+      "required": [
+        "path",
+        "rows",
+        "cols",
+        "x",
+        "y",
+        "w",
+        "h"
+      ],
+      "title": "pptx_add_tableArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "pptx_add_tableDictOutput"
+    }
+  },
+  {
+    "name": "pptx_add_chart",
+    "description": "Add a chart to a slide.\n\n    The ``data`` argument must follow the structure documented in\n    :func:`_build_chart_data`: a dict with ``\"categories\"`` (list of\n    x-axis labels) and ``\"series\"`` (list of ``{\"name\", \"values\"}``\n    dicts).\n\n    Args:\n        path: Path to an existing ``.pptx``.\n        chart_type: One of ``column``, ``bar``, ``line``, ``pie``,\n            etc. — see :data:`_CHART_TYPE_MAP`. (``VAL-PPTX-051``,\n            ``VAL-PPTX-052``.)\n        data: Chart data structure with ``categories`` and ``series``\n            keys (``VAL-PPTX-051``).\n        x: Left edge in inches.\n        y: Top edge in inches.\n        w: Width in inches.\n        h: Height in inches.\n        slide: 0-based slide index (``VAL-PPTX-055``).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"shape_index\": <int>}`` — 0-based index of the new chart\n        within the slide's shape list.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for unknown\n            ``chart_type`` (``VAL-PPTX-053``), empty ``series``\n            (``VAL-PPTX-054``), out-of-range ``slide``\n            (``VAL-PPTX-055``), or non-numeric geometry;\n            ``ERR_FILE_NOT_FOUND`` if the file is missing;\n            ``ERR_UNSUPPORTED_FMT`` for non-``.pptx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "chart_type": {
+          "title": "Chart Type",
+          "type": "string"
+        },
+        "data": {
+          "additionalProperties": true,
+          "title": "Data",
+          "type": "object"
+        },
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        },
+        "w": {
+          "title": "W",
+          "type": "number"
+        },
+        "h": {
+          "title": "H",
+          "type": "number"
+        },
+        "slide": {
+          "default": 0,
+          "title": "Slide",
+          "type": "integer"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "chart_type",
+        "data",
+        "x",
+        "y",
+        "w",
+        "h"
+      ],
+      "title": "pptx_add_chartArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "pptx_add_chartDictOutput"
+    }
+  },
+  {
+    "name": "pptx_export_pdf",
+    "description": "Convert a ``.pptx`` file to PDF via LibreOffice headless.\n\n    Delegates to :func:`office_mcp.exporters.export_to_pdf`. A unique\n    ``-env:UserInstallation`` is used per call so multiple exports\n    can run concurrently (``VAL-WORD-079`` pattern).\n\n    Args:\n        path: Path to an existing ``.pptx``.\n        output: Target path for the produced PDF. The parent\n            directory is created if it does not exist (``VAL-PPTX-057``).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"output_path\": \"<absolute path of the produced PDF>\"}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the source is\n            missing (``VAL-PPTX-059``); ``ERR_UNSUPPORTED_FMT`` for\n            non-``.pptx`` sources (``VAL-PPTX-060``);\n            ``ERR_LIBREOFFICE_MISSING`` when ``soffice`` is not on\n            PATH (``VAL-PPTX-058``); ``ERR_EXPORT_FAILED`` for any\n            other failure.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "output"
+      ],
+      "title": "pptx_export_pdfArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "pptx_export_pdfDictOutput"
+    }
+  },
+  {
+    "name": "pptx_export_html",
+    "description": "Convert a ``.pptx`` file to HTML via LibreOffice headless.\n\n    Delegates to :func:`office_mcp.exporters.export_to_html`. Unlike\n    ``.docx`` (which uses mammoth), ``.pptx`` always requires\n    LibreOffice (``VAL-PPTX-062``).\n\n    Args:\n        path: Path to an existing ``.pptx``.\n        output: Target path for the produced HTML. The parent\n            directory is created if it does not exist.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"output_path\": \"<absolute path of the produced HTML>\"}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the source is\n            missing (``VAL-PPTX-063``); ``ERR_UNSUPPORTED_FMT`` for\n            non-``.pptx`` sources (``VAL-PPTX-064``);\n            ``ERR_LIBREOFFICE_MISSING`` when ``soffice`` is not on\n            PATH (``VAL-PPTX-062``); ``ERR_EXPORT_FAILED`` for any\n            other failure.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "output"
+      ],
+      "title": "pptx_export_htmlArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "pptx_export_htmlDictOutput"
+    }
+  },
+  {
+    "name": "word_create_document",
+    "description": "Create a new ``.docx`` file at ``path`` with an optional title paragraph.\n\n    Args:\n        path: Target ``.docx`` path. May be absolute or relative to\n            ``folder`` (or to the default folder when ``folder`` is\n            ``None``).\n        title: Optional text for the first paragraph. When ``None`` the\n            document is created with a single empty paragraph (the\n            python-docx default).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"path\": \"<absolute path>\"}`` on success.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` if ``path`` is empty or\n            a file already exists at the target. ``ERR_UNSUPPORTED_FMT``\n            if ``path`` does not end in ``.docx``.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "word_create_documentArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "word_create_documentDictOutput"
+    }
+  },
+  {
+    "name": "word_get_info",
+    "description": "Return counts and core properties of a ``.docx`` file.\n\n    The returned dict contains:\n\n    * ``paragraphs`` — number of body paragraphs (including the empty\n      one emitted by :func:`docx.Document`).\n    * ``sections`` — number of sections in the document.\n    * ``tables`` — number of body tables.\n    * ``images`` — number of inline shapes (images).\n    * ``properties`` — subset of ``core_properties`` (``title``,\n      ``author``) that are populated.\n\n    Args:\n        path: Path to an existing ``.docx``.\n        folder: Optional base folder for relative paths.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is missing,\n            ``ERR_UNSUPPORTED_FMT`` if the extension is not ``.docx``,\n            ``ERR_INVALID_PARAMS`` if ``path`` is empty.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "word_get_infoArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "title": "word_get_infoDictOutput"
+    }
+  },
+  {
+    "name": "word_list_paragraphs",
+    "description": "Return one dict per body paragraph.\n\n    Each entry has ``index``, ``style``, ``text``, and ``runs`` keys.\n    ``runs`` is itself a list of run dicts (see\n    :func:`_serialise_run`).\n\n    Args:\n        path: Path to an existing ``.docx``.\n        folder: Optional base folder for relative paths.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is missing,\n            ``ERR_UNSUPPORTED_FMT`` for non-``.docx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "word_list_paragraphsArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Result",
+          "type": "array"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "word_list_paragraphsOutput"
+    }
+  },
+  {
+    "name": "word_read_paragraph",
+    "description": "Return a single paragraph's content and metadata.\n\n    Args:\n        path: Path to an existing ``.docx``.\n        index: Zero-based paragraph index.\n        folder: Optional base folder for relative paths.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` if ``index`` is negative\n            or out of range, ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_UNSUPPORTED_FMT`` for non-``.docx``\n            extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "index": {
+          "title": "Index",
+          "type": "integer"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "index"
+      ],
+      "title": "word_read_paragraphArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "title": "word_read_paragraphDictOutput"
+    }
+  },
+  {
+    "name": "word_add_paragraph",
+    "description": "Append a paragraph to the body of the document.\n\n    Args:\n        path: Path to an existing ``.docx``.\n        text: Text for the new paragraph. An empty string is accepted\n            and produces an empty paragraph.\n        style: Optional built-in style name (e.g. ``\"Intense Quote\"``).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"index\": <n>}`` where ``<n>`` is the index of the newly\n        appended paragraph.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the file is missing,\n            ``ERR_INVALID_PARAMS`` for bad ``text`` type or unknown\n            ``style``, ``ERR_UNSUPPORTED_FMT`` for non-``.docx``\n            extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "text"
+      ],
+      "title": "word_add_paragraphArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "word_add_paragraphDictOutput"
+    }
+  },
+  {
+    "name": "word_add_heading",
+    "description": "Append a heading paragraph at the given ``level`` (1..9).\n\n    Args:\n        path: Path to an existing ``.docx``.\n        text: Heading text.\n        level: Heading level (1 = ``Heading 1``, ..., 9 = ``Heading 9``).\n            Out-of-range values are rejected with\n            ``ERR_INVALID_PARAMS``.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"index\": <n>}`` for the new heading.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for an out-of-range\n            ``level`` or a non-int ``level``, ``ERR_FILE_NOT_FOUND``\n            if the file is missing, ``ERR_UNSUPPORTED_FMT`` for non-\n            ``.docx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "level": {
+          "default": 1,
+          "title": "Level",
+          "type": "integer"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "text"
+      ],
+      "title": "word_add_headingArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "word_add_headingDictOutput"
+    }
+  },
+  {
+    "name": "word_find_replace",
+    "description": "Replace every occurrence of ``find`` with ``replace``.\n\n    Operates on every body paragraph. The reported ``replacements``\n    count is the sum of occurrences across all paragraphs before the\n    replacement is applied (case-sensitivity follows the\n    ``case_sensitive`` flag).\n\n    Args:\n        path: Path to an existing ``.docx``.\n        find: The literal string to search for. Must be non-empty.\n        replace: The replacement string.\n        case_sensitive: When ``True`` (default), the match is exact;\n            when ``False``, the match is case-insensitive.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"replacements\": <n>}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` if ``find`` is empty or\n            non-string, ``ERR_FILE_NOT_FOUND`` if the file is missing,\n            ``ERR_UNSUPPORTED_FMT`` for non-``.docx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "find": {
+          "title": "Find",
+          "type": "string"
+        },
+        "replace": {
+          "title": "Replace",
+          "type": "string"
+        },
+        "case_sensitive": {
+          "default": true,
+          "title": "Case Sensitive",
+          "type": "boolean"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "find",
+        "replace"
+      ],
+      "title": "word_find_replaceArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "word_find_replaceDictOutput"
+    }
+  },
+  {
+    "name": "word_format_run",
+    "description": "Update the formatting of a single run.\n\n    Args:\n        path: Path to an existing ``.docx``.\n        paragraph_index: Zero-based index of the paragraph.\n        run_index: Zero-based index of the run inside that paragraph.\n        bold: ``True`` / ``False`` to set, or ``None`` to leave as-is.\n        italic: Same convention as ``bold``.\n        font_size: Point size (int or float) or ``None``.\n        font_name: Font name string or ``None``.\n        color: Hex color string (e.g. ``\"FF0000\"``) or ``None``.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"ok\": True}``.\n\n    Special case:\n        If **all** of ``bold``, ``italic``, ``font_size``, ``font_name``,\n        ``color`` are ``None``, the function is a no-op: the file is\n        not re-saved and the SHA256 is preserved\n        (``VAL-WORD-039`` / ``VAL-WORD-076``).\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` if indices are out of\n            range or of the wrong type, or ``color`` is not a valid\n            hex string. ``ERR_FILE_NOT_FOUND`` if the file is missing,\n            ``ERR_UNSUPPORTED_FMT`` for non-``.docx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "paragraph_index": {
+          "title": "Paragraph Index",
+          "type": "integer"
+        },
+        "run_index": {
+          "title": "Run Index",
+          "type": "integer"
+        },
+        "bold": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bold"
+        },
+        "italic": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Italic"
+        },
+        "font_size": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Font Size"
+        },
+        "font_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Font Name"
+        },
+        "color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Color"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "paragraph_index",
+        "run_index"
+      ],
+      "title": "word_format_runArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "word_format_runDictOutput"
+    }
+  },
+  {
+    "name": "word_add_table",
+    "description": "Append a table to the body of the document.\n\n    Args:\n        path: Path to an existing ``.docx``.\n        rows: Number of rows (must be a positive int).\n        cols: Number of columns (must be a positive int).\n        data: Optional 2D list of strings to populate the cells. The\n            list is interpreted in row-major order; shorter rows are\n            padded with empty strings and longer rows are truncated.\n        style: Optional built-in table style name (e.g. ``\"Table Grid\"``\n            or ``\"Light Grid Accent 1\"``).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"index\": <n>}`` where ``<n>`` is the index of the new table\n        in ``doc.tables``.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for non-positive\n            ``rows``/``cols``, unknown ``style``, or a non-list\n            ``data`` argument. ``ERR_FILE_NOT_FOUND`` if the file is\n            missing, ``ERR_UNSUPPORTED_FMT`` for non-``.docx``\n            extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "rows": {
+          "title": "Rows",
+          "type": "integer"
+        },
+        "cols": {
+          "title": "Cols",
+          "type": "integer"
+        },
+        "data": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Data"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Style"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "rows",
+        "cols"
+      ],
+      "title": "word_add_tableArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "word_add_tableDictOutput"
+    }
+  },
+  {
+    "name": "word_add_image",
+    "description": "Embed an image in the document body.\n\n    When ``width_inches`` is provided, the image is scaled to that\n    width and the height is auto-computed from the image's intrinsic\n    aspect ratio (``VAL-WORD-050`` / ``VAL-WORD-078``). When omitted,\n    the image is embedded at its native pixel size.\n\n    Args:\n        path: Path to an existing ``.docx``.\n        image_path: Path to the image file (PNG / JPEG / GIF / etc.).\n        width_inches: Optional target width in inches (must be\n            positive). When ``None`` the image is embedded at its\n            native size.\n        folder: Optional base folder for the ``path`` argument\n            (does not apply to ``image_path``, which is always\n            resolved absolutely or relative to the caller's CWD).\n\n    Returns:\n        ``{\"index\": <n>}`` where ``<n>`` is the index of the new\n        inline shape in ``doc.inline_shapes``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if either path is\n            missing, ``ERR_INVALID_PARAMS`` for an unsupported image\n            format or a non-positive ``width_inches``,\n            ``ERR_UNSUPPORTED_FMT`` for non-``.docx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "image_path": {
+          "title": "Image Path",
+          "type": "string"
+        },
+        "width_inches": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Width Inches"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "image_path"
+      ],
+      "title": "word_add_imageArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "word_add_imageDictOutput"
+    }
+  },
+  {
+    "name": "word_add_header",
+    "description": "Set the text of a section's header.\n\n    By default, only the first section's header is updated; later\n    sections keep their own headers (``VAL-WORD-058``). Pass an\n    explicit ``section_index`` to target a different section.\n\n    Args:\n        path: Path to an existing ``.docx``.\n        text: New header text. An empty string clears the first\n            paragraph (``VAL-WORD-057``).\n        section_index: Zero-based section index (default 0).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"ok\": True}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for a non-int or\n            out-of-range ``section_index`` or a non-string ``text``,\n            ``ERR_FILE_NOT_FOUND`` if the file is missing,\n            ``ERR_UNSUPPORTED_FMT`` for non-``.docx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "section_index": {
+          "default": 0,
+          "title": "Section Index",
+          "type": "integer"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "text"
+      ],
+      "title": "word_add_headerArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "word_add_headerDictOutput"
+    }
+  },
+  {
+    "name": "word_add_footer",
+    "description": "Set the text of a section's footer.\n\n    By default, only the first section's footer is updated; later\n    sections keep their own footers (``VAL-WORD-062``). Pass an\n    explicit ``section_index`` to target a different section.\n\n    Args:\n        path: Path to an existing ``.docx``.\n        text: New footer text. An empty string clears the first\n            paragraph (``VAL-WORD-061``).\n        section_index: Zero-based section index (default 0).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"ok\": True}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for a non-int or\n            out-of-range ``section_index`` or a non-string ``text``,\n            ``ERR_FILE_NOT_FOUND`` if the file is missing,\n            ``ERR_UNSUPPORTED_FMT`` for non-``.docx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "section_index": {
+          "default": 0,
+          "title": "Section Index",
+          "type": "integer"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "text"
+      ],
+      "title": "word_add_footerArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "word_add_footerDictOutput"
+    }
+  },
+  {
+    "name": "word_set_section",
+    "description": "Configure a section's orientation and page size.\n\n    Args:\n        path: Path to an existing ``.docx``.\n        orientation: ``\"portrait\"`` or ``\"landscape\"`` (case-insensitive).\n            Any other value raises ``ERR_INVALID_PARAMS``\n            (``VAL-WORD-065``).\n        page_size: A named page size such as ``\"A4\"`` (default),\n            ``\"Letter\"``, ``\"Legal\"``, ``\"A5\"``, ``\"Tabloid\"`` or\n            ``\"B5\"`` (case-insensitive).\n        section_index: Zero-based section index (default 0).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"ok\": True}``.\n\n    Behavior:\n        * Portrait: ``page_width = <width>``, ``page_height = <height>``.\n        * Landscape: ``page_width = <height>``, ``page_height = <width>``\n          (i.e. dimensions are swapped so the wider edge is horizontal).\n\n    Raises:\n        OfficeMCPError: ``ERR_INVALID_PARAMS`` for an unknown\n            ``orientation`` or ``page_size``, ``ERR_FILE_NOT_FOUND``\n            if the file is missing, ``ERR_UNSUPPORTED_FMT`` for\n            non-``.docx`` extensions.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "orientation": {
+          "default": "portrait",
+          "title": "Orientation",
+          "type": "string"
+        },
+        "page_size": {
+          "default": "A4",
+          "title": "Page Size",
+          "type": "string"
+        },
+        "section_index": {
+          "default": 0,
+          "title": "Section Index",
+          "type": "integer"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "title": "word_set_sectionArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "word_set_sectionDictOutput"
+    }
+  },
+  {
+    "name": "word_export_pdf",
+    "description": "Convert a ``.docx`` file to PDF via LibreOffice headless.\n\n    Delegates to :func:`office_mcp.exporters.export_to_pdf`. A unique\n    ``-env:UserInstallation`` is used per call so multiple exports\n    can run concurrently (``VAL-WORD-079``).\n\n    Args:\n        path: Path to an existing ``.docx`` file.\n        output: Target path for the produced PDF. The parent\n            directory is created if it does not exist. If a relative\n            path is given, it is resolved against ``folder`` (or the\n            default folder).\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"output_path\": \"<absolute path of the produced PDF>\"}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the source is\n            missing, ``ERR_UNSUPPORTED_FMT`` for non-``.docx``\n            sources, ``ERR_LIBREOFFICE_MISSING`` when ``soffice`` is\n            not on PATH, ``ERR_EXPORT_FAILED`` for any other failure.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "output"
+      ],
+      "title": "word_export_pdfArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "word_export_pdfDictOutput"
+    }
+  },
+  {
+    "name": "word_export_html",
+    "description": "Convert a ``.docx`` file to HTML via :mod:`mammoth`.\n\n    Delegates to :func:`office_mcp.exporters.export_to_html`. The\n    ``.docx`` path uses ``mammoth`` only (no LibreOffice dependency\n    — ``VAL-WORD-072``).\n\n    Args:\n        path: Path to an existing ``.docx`` file.\n        output: Target path for the produced HTML. The parent\n            directory is created if it does not exist.\n        folder: Optional base folder for relative paths.\n\n    Returns:\n        ``{\"output_path\": \"<absolute path of the produced HTML>\"}``.\n\n    Raises:\n        OfficeMCPError: ``ERR_FILE_NOT_FOUND`` if the source is\n            missing, ``ERR_UNSUPPORTED_FMT`` for non-``.docx``\n            sources, ``ERR_EXPORT_FAILED`` for any other failure.\n    ",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "folder": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Folder"
+        }
+      },
+      "required": [
+        "path",
+        "output"
+      ],
+      "title": "word_export_htmlArguments"
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "word_export_htmlDictOutput"
+    }
+  }
+]

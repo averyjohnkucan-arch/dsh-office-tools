@@ -1,0 +1,20 @@
+import SystemPrompt from '@deepseek-ai/dsh-system-prompt';
+import test from 'node:test';import assert from 'node:assert/strict';import {mkdtemp,rm,symlink,readFile} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';import {Context} from '@deepseek-ai/cordis';import Tools from '@deepseek-ai/dsh-tools';import Skills from '@deepseek-ai/dsh-skill';import {apply} from '../index.js';import {projectPath,pythonOf} from '../lib/runtime.js';import {run} from '../scripts/setup.js';
+test('real Office-MCP via DSH creates and presents an Excel workbook',async t=>{
+ const dir=await mkdtemp(join(tmpdir(),'dsh-office-'));t.after(()=>rm(dir,{recursive:true,force:true}));
+ const ctx=new Context();new SystemPrompt(ctx,{});new Tools(ctx);new Skills(ctx);const attachments=[];ctx.provide('attachments',{saveFile:async value=>{attachments.push(value);return {attachmentId:'fixture',name:value.name,bytes:value.data.length}}});
+ const releases=[];const original=ctx.effect.bind(ctx);ctx.effect=f=>{const result=original(f);releases.push(result);return result};
+ await apply(ctx,{});t.after(async()=>{for(const release of releases.reverse())await release?.()});
+ const exec={workspace:dir,signal:AbortSignal.timeout(30000)};const call=(name,args)=>ctx.tools.get(name).execute(args,exec);
+ assert.ok((await ctx.skills.list()).find(s=>s.name==='office-excel'));
+ await call('office_excel_create_workbook',{path:'sales.xlsx',sheet_name:'Sales'});
+ await call('office_excel_write_range',{path:'sales.xlsx',sheet:'Sales',start_cell:'A1',data:[['Product','Units','Price','Total'],['A',3,10,'=B2*C2'],['B',2,20,'=B3*C3'],['Total',null,null,'=SUM(D2:D3)']]});
+ await call('office_excel_format_cells',{path:'sales.xlsx',sheet:'Sales',cell_range:'A1:D1',bold:true,fill_color:'4472C4'});
+ await call('office_excel_add_chart',{path:'sales.xlsx',sheet:'Sales',chart_type:'bar',data_range:'A1:B3',target_cell:'F2',title:'Sales Units'});
+ const data=await call('office_excel_read_sheet',{path:'sales.xlsx',sheet:'Sales',range:'A1:D4'});assert.match(JSON.stringify(data),/SUM\(D2:D3\)/);
+ const presented=await call('office_present',{paths:['sales.xlsx']});assert.equal(presented.files.length,1);assert.ok(attachments[0].data.length>1000);
+ const rendered=ctx.tools.get('office_present').output.render({},presented);assert.equal(rendered[1].type,'file');
+ const verified=await run(pythonOf({}),['-c','import openpyxl,sys; w=openpyxl.load_workbook(sys.argv[1]); s=w["Sales"]; assert s["D4"].value=="=SUM(D2:D3)"; assert s["A1"].font.bold; assert len(s._charts)==1; print("verified")',join(dir,'sales.xlsx')]);assert.match(verified,/verified/);
+ await assert.rejects(call('office_excel_create_workbook',{path:'../outside.xlsx'}),/workspace/);
+ await symlink(tmpdir(),join(dir,'outside'));await assert.rejects(projectPath(dir,'outside/escape.xlsx'),/symlink/);
+});
