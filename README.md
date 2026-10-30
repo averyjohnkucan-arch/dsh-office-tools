@@ -21,3 +21,5 @@ The bundled chart adapter fixes upstream category-column and headerless-range ha
 ## Validation
 
 `node --test test/*.test.js` exercises real MCP workbook creation, formula/data writes, formatting, chart creation, readback and the DSH tool/skill registry and attachment output. Tests require setup first. Windows path/runtime branches are included, but native Windows execution has not been tested on the Linux development host.
+
+See [COMPATIBILITY.md](COMPATIBILITY.md) for supported DSH versions and upgrade checks.
