@@ -4,7 +4,7 @@ test('real Office-MCP via DSH creates and presents an Excel workbook',async t=>{
  const dir=await mkdtemp(join(tmpdir(),'dsh-office-'));t.after(()=>rm(dir,{recursive:true,force:true}));
  const ctx=new Context();new SystemPrompt(ctx,{});new Tools(ctx);new Skills(ctx);const attachments=[];ctx.provide('attachments',{saveFile:async value=>{attachments.push(value);return {attachmentId:'fixture',name:value.name,bytes:value.data.length}}});
  const releases=[];const original=ctx.effect.bind(ctx);ctx.effect=f=>{const result=original(f);releases.push(result);return result};
- await apply(ctx,{});t.after(async()=>{for(const release of releases.reverse())await release?.()});
+ await apply(ctx,{pythonExecutable:process.env.DSH_OFFICE_PYTHON});t.after(async()=>{for(const release of releases.reverse())await release?.()});
  const exec={workspace:dir,signal:AbortSignal.timeout(30000)};const call=(name,args)=>ctx.tools.get(name).execute(args,exec);
  assert.ok((await ctx.skills.list()).find(s=>s.name==='office-excel'));
  await call('office_excel_create_workbook',{path:'sales.xlsx',sheet_name:'Sales'});
@@ -15,7 +15,7 @@ test('real Office-MCP via DSH creates and presents an Excel workbook',async t=>{
  const data=await call('office_excel_read_sheet',{path:'sales.xlsx',sheet:'Sales',range:'A1:D4'});assert.match(JSON.stringify(data),/SUM\(D2:D3\)/);
  const presented=await call('office_present',{paths:['sales.xlsx']});assert.equal(presented.files.length,1);assert.ok(attachments[0].data.length>1000);
  const rendered=ctx.tools.get('office_present').output.render({},presented);assert.equal(rendered[1].type,'file');
- const verified=await run(pythonOf({}),['-c','import openpyxl,sys; w=openpyxl.load_workbook(sys.argv[1]); s=w["Sales"]; assert s["D4"].value=="=SUM(D2:D3)"; assert s["A1"].font.bold; assert len(s._charts)==2; assert all(len(c.ser)==1 and c.ser[0].val.numRef.f.endswith("$B$2:$B$3") and c.ser[0].cat.numRef.f.endswith("$A$2:$A$3") for c in s._charts); print("verified")',join(dir,'sales.xlsx')]);assert.match(verified,/verified/);
+ const verified=await run(pythonOf({pythonExecutable:process.env.DSH_OFFICE_PYTHON}),['-c','import openpyxl,sys; w=openpyxl.load_workbook(sys.argv[1]); s=w["Sales"]; assert s["D4"].value=="=SUM(D2:D3)"; assert s["A1"].font.bold; assert len(s._charts)==2; assert all(len(c.ser)==1 and c.ser[0].val.numRef.f.endswith("$B$2:$B$3") and c.ser[0].cat.numRef.f.endswith("$A$2:$A$3") for c in s._charts); print("verified")',join(dir,'sales.xlsx')]);assert.match(verified,/verified/);
  await assert.rejects(call('office_excel_create_workbook',{path:'../outside.xlsx'}),/workspace/);
  await symlink(tmpdir(),join(dir,'outside'));await assert.rejects(projectPath(dir,'outside/escape.xlsx'),/symlink/);
 });
