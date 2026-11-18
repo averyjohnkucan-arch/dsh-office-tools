@@ -1,10 +1,14 @@
 # DSH Office Tools
 
-**RC4 installation trial.** Start DeepSeek Harness with `npx @deepseek-ai/dsh@0.2.2-rc.4 web` (Node.js 24.9 or newer). In **Plugins → Add plugin**, paste the full path to this RC4 trial’s `.tgz` file and enable the plugin.
-
 Standalone plugin for DeepSeek Harness 0.2.2-rc.4. Install from this GitHub repository using DSH Plugins, or `dsh plugin --profile web add <repository-url> --config.ignore-scripts=true`.
 
 The plugin bundles the [gawirable/office-mcp](https://github.com/gawirable/office-mcp) server based on commit `cf210cb6581f33cf3ceb57cf1defff4fc58d050b`. It exposes 47 real MCP editing tools through the public DSH tools registry, adds an `office-excel` workflow through the public skill registry, and provides `office_present` for downloadable attachments. No Harness source modifications, old installation paths or external tool plugins are required.
+
+## Stock Office tools
+
+This bundle replaces the stock Office tool and skill provider in DSH Web Standard and PTC presets. It keeps general DSH tools such as `present` and the web document preview. New conversations use the plugin’s Office-MCP tools. Existing conversations with an older preset revision cannot invoke the stock Office tools while this plugin is loaded.
+
+This release exposes the plugin’s existing editing and export tools. Visual model previews and explicit workbook recalculation from the stock Office provider are unavailable in replacement mode. Exporting PDF or HTML still requires LibreOffice. Remove the bundle from the profile to restore the stock Office skills and tools.
 
 ## Setup
 

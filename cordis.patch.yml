@@ -1,3 +1,6 @@
+- id: skill-office
+  name: '@deepseek-ai/dsh-skill-office'
+  disabled: true
 - insert:
     - id: office-tools
       name: dsh-office-tools
