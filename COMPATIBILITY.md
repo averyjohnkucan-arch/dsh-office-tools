@@ -1,4 +1,8 @@
-# DSH compatibility — 0.1.4
+# DSH compatibility — 0.1.5
+
+The Office status action now returns a JSON object accepted by the Harness tool dispatcher. The menu also returns the editing tool names. Both forms run through the RC4 tool execution pipeline in the regression test.
+
+## 0.1.4
 
 Fixed a first-turn chat failure on DeepSeek Harness 0.2.2-rc.4. Harness attaches tool declarations after the prompt presentation hook returns. Office Tools now relies on the preset to replace the stock provider and on its dispatch guard for sessions pinned to older presets. The regression test calls the Harness prompt builder with both an empty and a populated tool registry.
 

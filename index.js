@@ -28,7 +28,15 @@ export async function apply(ctx,config={}){
    await approveEscalation({requestedMode:'danger-full-access',effectiveMode:policy.mode,subject:'Office runtime setup',justification:'Install isolated Python dependencies for the bundled Office-MCP server.'},{approver:ctx.get('approval'),agent:exec.agent,callId:exec.callId,toolName:'office_tools',signal:exec.signal});
    return setup({dataDir:config.dataDir,signal:exec.signal});
   }
-  return {...await runtime.status(),tools:args.action==='status'?undefined:tools.map(t=>'office_'+t.name),skill:'office-excel',present:'office_present',source:'https://github.com/gawirable/office-mcp',upstreamCommit:'cf210cb6581f33cf3ceb57cf1defff4fc58d050b'};
+  const result = {
+    ...await runtime.status(),
+    skill: 'office-excel',
+    present: 'office_present',
+    source: 'https://github.com/gawirable/office-mcp',
+    upstreamCommit: 'cf210cb6581f33cf3ceb57cf1defff4fc58d050b',
+  };
+  if (args.action !== 'status') result.tools = tools.map(tool => 'office_' + tool.name);
+  return result;
  }})));
  ctx.effect(()=>ctx.tools.register(defineTool({name:'office_present',description:'Attach finished Excel, Word, PowerPoint, PDF or CSV files from the conversation workspace for the user to download. Call after validating the document.',parameters:{paths:{type:'array',items:{type:'string'},required:true}},timeoutMs:30000,isConcurrencySafe:()=>true,output:{schema:{type:'object',additionalProperties:true},render:(_a,value)=>[{type:'text',text:value.files.map(f=>`[${f.name}](<${f.path}>)`).join('\n')},...value.files.map(f=>({type:'file',attachment:f.attachment}))]},execute:async({paths},exec)=>{
   if(!Array.isArray(paths)||!paths.length||paths.length>12)throw Error('Present 1–12 workspace files.');const workspace=await workspaceOf(exec),files=[];
