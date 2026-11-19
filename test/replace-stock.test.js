@@ -14,11 +14,12 @@ test('only the stock Office provider is removed from a preset', () => {
   assert.deepEqual(original.plugins, [stock, present]);
 });
 
-test('RC4 config hook, prompt filter, and dispatch guard are reversible', async t => {
+test('RC4 assembles chat prompts while the Office preset replacement is active', async t => {
   const ctx = new Context();
   new SystemPrompt(ctx, {});
   new Tools(ctx);
   t.after(() => ctx.fiber.dispose());
+  ctx.tools.setExecutor({ describe: definitions => ({ schemas: definitions }) });
   const updates = [];
   const raw = { id: 'standard', plugins: [stock, present] };
   const preset = {
@@ -40,9 +41,15 @@ test('RC4 config hook, prompt filter, and dispatch guard are reversible', async 
   assert.deepEqual(ctx.waterfall('internal/config', newer, () => newer.config).plugins, [present]);
   assert.match(ctx.tools.checkGuards({ name: 'office_render' }).reason, /disabled/);
   assert.equal(ctx.tools.checkGuards({ name: 'office_excel_create_workbook' }), undefined);
-  const tools = [{ name: 'office_render' }, { name: 'office_excel_create_workbook' }, { name: 'present' }];
-  const assembly = await ctx.waterfall('system-prompt/assemble', { tools }, {}, async () => ({ tools }));
-  assert.deepEqual(assembly.tools.map(tool => tool.name), ['office_excel_create_workbook', 'present']);
+  assert.deepEqual((await ctx.systemPrompt.assemble()).tools, []);
+  for (const name of ['office_excel_create_workbook', 'present']) {
+    ctx.tools.register({
+      name, description: name, parameters: { type: 'object', properties: {} },
+      output: { schema: { type: 'object' }, render: () => [] }, execute: async () => ({}),
+    });
+  }
+  const assembly = await ctx.systemPrompt.assemble();
+  assert.deepEqual(assembly.tools.map(tool => tool.name).sort(), ['office_excel_create_workbook', 'present']);
   await restore();
   assert.deepEqual(updates[1].plugins, [stock, present]);
   assert.equal(ctx.tools.checkGuards({ name: 'office_render' }), undefined);

@@ -1,4 +1,8 @@
-# DSH compatibility — 0.1.3
+# DSH compatibility — 0.1.4
+
+Fixed a first-turn chat failure on DeepSeek Harness 0.2.2-rc.4. Harness attaches tool declarations after the prompt presentation hook returns. Office Tools now relies on the preset to replace the stock provider and on its dispatch guard for sessions pinned to older presets. The regression test calls the Harness prompt builder with both an empty and a populated tool registry.
+
+## 0.1.3
 
 Verified on DeepSeek Harness **0.2.2-rc.4** with Node.js 24. A clean Web boot verified that Standard and PTC omit the stock Office tool provider, the stock Office skill is disabled, and the plugin's editing tools are registered. Tests exercise the preset filter, the dispatch guard for older conversation revisions, restoration on disposal, and real Office-MCP workbook editing and attachment delivery.
 

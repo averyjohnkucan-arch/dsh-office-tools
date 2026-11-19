@@ -1,6 +1,6 @@
 {
   "name": "dsh-office-tools",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "type": "module",
   "license": "MIT",
   "description": "Local Excel, Word and PowerPoint editing through a bundled Office-MCP server, with DSH skills and downloadable files.",
