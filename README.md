@@ -12,6 +12,8 @@ This release exposes the plugin’s existing editing and export tools. Visual mo
 
 ## Setup
 
+In Harness, open **Settings → Office Tools**, then choose **Install Office runtime**. The readiness check verifies the Python libraries for Word, Excel and PowerPoint.
+
 Run `node scripts/setup.js` from the installed plugin directory, or select `office_tools(action="setup")` in DSH. Setup creates an isolated Python environment under `$DSH_HOME/dsh-office-tools/venv`. It requires Python 3.10+ (`python3` on Linux, `python` on Windows). If Python lacks pip, setup uses the official PyPA bootstrap inside the isolated environment. `--python /path/to/python` and `--data-dir /path/to/state` override setup locations.
 
 DSH plugin configuration supports `dataDir`, `pythonExecutable` (an already provisioned Python containing the dependencies) and `sofficeExecutable`. Excel, Word and PowerPoint editing works without LibreOffice. PDF/HTML conversion requires a separate LibreOffice installation. Python packages are installed on the target computer; they are not committed into this repository. Bundled source and tool schemas ship with the plugin.

@@ -1,14 +1,16 @@
 {
   "name": "dsh-office-tools",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "type": "module",
   "license": "MIT",
   "description": "Local Excel, Word and PowerPoint editing through a bundled Office-MCP server, with DSH skills and downloadable files.",
   "exports": {
-    ".": "./index.js"
+    ".": "./index.js",
+    "./client": "./client.js"
   },
   "files": [
     "index.js",
+    "client.js",
     "lib",
     "scripts",
     "data",
@@ -42,6 +44,11 @@
     "@deepseek-ai/dsh-sandbox": "0.2.2-rc.4"
   },
   "dsh": {
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-client-ui-settings"]
+    },
     "bundle": {
       "patch": "./cordis.patch.yml"
     }

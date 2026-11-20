@@ -6,12 +6,14 @@ import {approveEscalation} from '@deepseek-ai/dsh-sandbox';
 import {OfficeRuntime,workspaceOf,projectPath} from './lib/runtime.js';
 import {setup} from './scripts/setup.js';
 import {replaceStockOffice} from './lib/replace-stock.js';
+import {attachOfficeSetup} from './lib/web-setup.js';
 export const inject=['tools','skills','attachments','sandboxPolicy'];
 export const Config=Schema.object({dataDir:Schema.string().default(''),pythonExecutable:Schema.string().default(''),sofficeExecutable:Schema.string().default('')});
 const output={schema:{type:'object',additionalProperties:true},render:(_a,v)=>[{type:'text',text:JSON.stringify(v)}]};
 export async function apply(ctx,config={}){
  const runtime=new OfficeRuntime(config),tools=JSON.parse(await readFile(new URL('./data/tools.json',import.meta.url),'utf8'));
  ctx.effect(()=>()=>runtime.close());
+ ctx.inject(['webServer'],scope=>attachOfficeSetup(scope,runtime,config));
  for(const tool of tools)ctx.effect(()=>ctx.tools.register({name:'office_'+tool.name,description:tool.description+' Local Office-MCP. Paths stay in the conversation workspace. Use office_present for the final downloadable file.',parameters:tool.inputSchema,output,timeoutMs:150000,isConcurrencySafe:()=>false,execute:(args,exec)=>runtime.call(tool.name,args,exec)}));
  ctx.effect(()=>ctx.skills.register({name:'office-excel',description:'Create and edit Excel XLSX workbooks locally using Office-MCP: sheets, cells, formulas, formatting and charts, with a downloadable spreadsheet file.',provider:'runtime',source:'runtime',content:'For an Excel task, discover the office_excel_* tools. office_excel_create_workbook creates the workbook; office_excel_write_range writes a rectangular data array; values starting with = are formulas. Inspect the exact tool schemas before calling them. Use office_excel_format_cells and office_excel_add_chart as needed. Include the header row when selecting a chart data_range, for example A1:B3 for two products and their units. Keep all paths workspace-relative. Inspect the finished workbook with office_excel_get_info and office_excel_read_sheet, verify expected values and formulas, and finish with office_present(paths=[...]) so the user receives the XLSX attachment. Excel evaluates formulas when opened; creating a formula does not prove its cached result was recalculated. PDF/HTML exports require LibreOffice. If tools say the runtime is missing, run office_tools(action="setup") under the normal DSH approval policy. Never claim a file was created until the actual tool succeeds.'}));
  for (const [family, format] of [['word', 'DOCX'], ['pptx', 'PPTX']]) {
